@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>BTS Concert Countdown 💜</title>
+  <link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;700;900&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --purple: #9b4dca;
+      --deep: #1a0533;
+      --pink: #ff6ec7;
+      --yellow: #ffe135;
+      --cyan: #00f5ff;
+      --white: #fff;
+    }
+
+    body {
+      min-height: 100vh;
+      background: var(--deep);
+      font-family: 'Noto Sans KR', sans-serif;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    /* Animated starfield */
+    #stars-canvas {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    /* Gradient blobs */
+    .blob {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(80px);
+      opacity: 0.35;
+      animation: drift 8s ease-in-out infinite alternate;
+      pointer-events: none;
+      z-index: 0;
+    }
+    .blob-1 { width: 500px; height: 500px; background: var(--purple); top: -100px; left: -100px; animation-delay: 0s; }
+    .blob-2 { width: 400px; height: 400px; background: var(--pink); bottom: -80px; right: -80px; animation-delay: 2s; }
+    .blob-3 { width: 300px; height: 300px; background: #4a90d9; top: 40%; left: 50%; animation-delay: 4s; }
+
+    @keyframes drift {
+      from { transform: translate(0, 0) scale(1); }
+      to   { transform: translate(30px, 40px) scale(1.1); }
+    }
+
+    /* Layout */
+    .wrapper {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 40px 20px;
+      gap: 28px;
+    }
+
+    /* Badge */
+    .badge {
+      background: linear-gradient(135deg, var(--pink), var(--purple));
+      color: white;
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      padding: 7px 22px;
+      border-radius: 100px;
+      box-shadow: 0 0 20px rgba(255,110,199,0.5);
+      animation: pulse-badge 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse-badge {
+      0%, 100% { box-shadow: 0 0 20px rgba(255,110,199,0.5); }
+      50%       { box-shadow: 0 0 40px rgba(255,110,199,0.9); }
+    }
+
+    /* BTS Logo Title */
+    .bts-title {
+      font-family: 'Black Han Sans', sans-serif;
+      font-size: clamp(4rem, 15vw, 10rem);
+      line-height: 1;
+      background: linear-gradient(135deg, var(--yellow) 0%, var(--pink) 40%, var(--cyan) 80%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      filter: drop-shadow(0 0 30px rgba(255,110,199,0.6));
+      animation: shimmer 3s linear infinite;
+      background-size: 200% 200%;
+    }
+
+    @keyframes shimmer {
+      0%   { background-position: 0% 50%; }
+      50%  { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    .concert-sub {
+      font-size: clamp(1rem, 3vw, 1.4rem);
+      color: rgba(255,255,255,0.75);
+      letter-spacing: 2px;
+      text-align: center;
+    }
+    .concert-sub span {
+      color: var(--yellow);
+      font-weight: 900;
+    }
+
+    /* Countdown grid */
+    .countdown {
+      display: flex;
+      gap: clamp(10px, 3vw, 28px);
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .unit {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .box {
+      position: relative;
+      width: clamp(70px, 18vw, 120px);
+      height: clamp(70px, 18vw, 120px);
+      background: rgba(255,255,255,0.05);
+      border: 2px solid rgba(255,255,255,0.15);
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(10px);
+      overflow: hidden;
+      transition: transform 0.15s;
+    }
+    .box::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(255,110,199,0.15), rgba(0,245,255,0.1));
+      border-radius: inherit;
+    }
+    .box:hover { transform: scale(1.07); }
+
+    /* Flip animation */
+    .number {
+      font-family: 'Black Han Sans', sans-serif;
+      font-size: clamp(2rem, 8vw, 4.5rem);
+      color: white;
+      position: relative;
+      z-index: 1;
+      text-shadow: 0 0 20px rgba(255,110,199,0.8);
+      animation: none;
+    }
+
+    .number.flip {
+      animation: flipNum 0.35s ease;
+    }
+
+    @keyframes flipNum {
+      0%   { transform: rotateX(0deg); opacity: 1; }
+      50%  { transform: rotateX(90deg); opacity: 0; }
+      100% { transform: rotateX(0deg); opacity: 1; }
+    }
+
+    .label {
+      font-size: clamp(0.55rem, 2vw, 0.85rem);
+      color: rgba(255,255,255,0.5);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      font-weight: 700;
+    }
+
+    /* Divider dots */
+    .sep {
+      font-family: 'Black Han Sans', sans-serif;
+      font-size: clamp(2rem, 6vw, 4rem);
+      color: var(--pink);
+      align-self: center;
+      margin-bottom: 30px;
+      animation: blink 1s step-end infinite;
+    }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.1} }
+
+    /* Date display */
+    .date-pill {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: linear-gradient(135deg, rgba(155,77,202,0.3), rgba(255,110,199,0.2));
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 100px;
+      padding: 10px 24px;
+      color: white;
+      font-size: clamp(0.85rem, 2.5vw, 1.1rem);
+      font-weight: 700;
+      letter-spacing: 1px;
+      backdrop-filter: blur(8px);
+    }
+    .date-pill .dot { font-size: 1.3em; }
+
+    /* ARMY message */
+    .army-msg {
+      font-size: clamp(0.9rem, 2.5vw, 1.1rem);
+      color: rgba(255,255,255,0.6);
+      text-align: center;
+      max-width: 420px;
+      line-height: 1.7;
+    }
+    .army-msg strong {
+      color: var(--yellow);
+    }
+
+    /* Floating lightstick emojis */
+    .floaties {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+    .floatie {
+      position: absolute;
+      font-size: clamp(1.2rem, 3vw, 2rem);
+      animation: floatUp linear infinite;
+      opacity: 0;
+    }
+
+    @keyframes floatUp {
+      0%   { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+      10%  { opacity: 0.7; }
+      90%  { opacity: 0.5; }
+      100% { transform: translateY(-10vh) rotate(360deg); opacity: 0; }
+    }
+
+    /* Done state */
+    .done-msg {
+      display: none;
+      font-family: 'Black Han Sans', sans-serif;
+      font-size: clamp(2rem, 8vw, 5rem);
+      background: linear-gradient(135deg, var(--yellow), var(--pink), var(--cyan));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      text-align: center;
+      animation: shimmer 2s linear infinite;
+      background-size: 200%;
+    }
+
+    /* Footer */
+    .footer {
+      font-size: 0.7rem;
+      color: rgba(255,255,255,0.25);
+      letter-spacing: 1px;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="stars-canvas"></canvas>
+  <div class="blob blob-1"></div>
+  <div class="blob blob-2"></div>
+  <div class="blob blob-3"></div>
+
+  <div class="floaties" id="floaties"></div>
+
+  <div class="wrapper">
+    <div class="badge">✦ CONCERT COUNTDOWN ✦</div>
+
+    <div class="bts-title">BTS</div>
+
+    <div class="concert-sub">🎤 Concert ngày <span>03 / 05 / 2026</span> 🎤</div>
+
+    <div class="countdown" id="countdown">
+      <div class="unit">
+        <div class="box"><span class="number" id="days">00</span></div>
+        <span class="label">Ngày</span>
+      </div>
+      <div class="sep">:</div>
+      <div class="unit">
+        <div class="box"><span class="number" id="hours">00</span></div>
+        <span class="label">Giờ</span>
+      </div>
+      <div class="sep">:</div>
+      <div class="unit">
+        <div class="box"><span class="number" id="minutes">00</span></div>
+        <span class="label">Phút</span>
+      </div>
+      <div class="sep">:</div>
+      <div class="unit">
+        <div class="box"><span class="number" id="seconds">00</span></div>
+        <span class="label">Giây</span>
+      </div>
+    </div>
+
+    <div class="done-msg" id="done-msg">🎉 Tonight We Make History! 💜</div>
+
+    <div class="date-pill">
+      <span class="dot">💜</span>
+      <span>ARMY, còn bao lâu nữa là gặp được họ!</span>
+      <span class="dot">💜</span>
+    </div>
+
+    <p class="army-msg">
+      Mỗi giây trôi qua là một giây gần hơn với <strong>7 chàng trai</strong> mà chúng ta yêu thương.<br/>
+    </p>
+
+    <div class="footer">💜 We are Bulletproof : the Eternal 💜</div>
+  </div>
+
+<script>
+  // ── Stars ──
+  const canvas = document.getElementById('stars-canvas');
+  const ctx = canvas.getContext('2d');
+  let stars = [];
+
+  function resizeCanvas() {
+    canvas.width  = window.innerWidth;
+    canvas.height = window.innerHeight;
+  }
+
+  function initStars() {
+    stars = Array.from({length: 180}, () => ({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      r: Math.random() * 1.5 + 0.3,
+      a: Math.random(),
+      speed: Math.random() * 0.008 + 0.003,
+      twinkle: Math.random() * Math.PI * 2
+    }));
+  }
+
+  function drawStars(ts) {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    stars.forEach(s => {
+      s.twinkle += s.speed;
+      const alpha = 0.3 + 0.7 * (Math.sin(s.twinkle) * 0.5 + 0.5);
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+      // Mix purple/cyan/white
+      const hue = (s.twinkle * 30) % 360;
+      ctx.fillStyle = `hsla(${hue > 300 || hue < 60 ? 280 : 180}, 80%, 80%, ${alpha})`;
+      ctx.fill();
+    });
+    requestAnimationFrame(drawStars);
+  }
+
+  resizeCanvas(); initStars(); drawStars();
+  window.addEventListener('resize', () => { resizeCanvas(); initStars(); });
+
+  // ── Floating emojis ──
+  const emojis = ['💜','🎤','✨','🌟','💫','🎶','🎵','💎','🪄','⭐'];
+  const floatContainer = document.getElementById('floaties');
+
+  function spawnFloatie() {
+    const el = document.createElement('div');
+    el.className = 'floatie';
+    el.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+    el.style.left = Math.random() * 100 + 'vw';
+    el.style.fontSize = (Math.random() * 1.5 + 1) + 'rem';
+    const dur = Math.random() * 8 + 7;
+    el.style.animationDuration = dur + 's';
+    el.style.animationDelay = Math.random() * 3 + 's';
+    floatContainer.appendChild(el);
+    setTimeout(() => el.remove(), (dur + 3) * 1000);
+  }
+
+  setInterval(spawnFloatie, 600);
+
+  // ── Countdown ──
+  const target = new Date('2026-05-03T00:00:00-06:00');
+
+  const elDays    = document.getElementById('days');
+  const elHours   = document.getElementById('hours');
+  const elMinutes = document.getElementById('minutes');
+  const elSeconds = document.getElementById('seconds');
+  const doneMsg   = document.getElementById('done-msg');
+  const cdEl      = document.getElementById('countdown');
+
+  let prev = { d: null, h: null, m: null, s: null };
+
+  function pad(n) { return String(n).padStart(2, '0'); }
+
+  function animateFlip(el, val, key) {
+    if (prev[key] !== val) {
+      el.classList.remove('flip');
+      void el.offsetWidth; // reflow
+      el.classList.add('flip');
+      el.textContent = pad(val);
+      prev[key] = val;
+    }
+  }
+
+  function tick() {
+    const now  = new Date();
+    const diff = target - now;
+
+    if (diff <= 0) {
+      cdEl.style.display = 'none';
+      doneMsg.style.display = 'block';
+      return;
+    }
+
+    const d = Math.floor(diff / 86400000);
+    const h = Math.floor((diff % 86400000) / 3600000);
+    const m = Math.floor((diff % 3600000)  / 60000);
+    const s = Math.floor((diff % 60000)    / 1000);
+
+    animateFlip(elDays,    d, 'd');
+    animateFlip(elHours,   h, 'h');
+    animateFlip(elMinutes, m, 'm');
+    animateFlip(elSeconds, s, 's');
+  }
+
+  tick();
+  setInterval(tick, 1000);
+</script>
+</body>
+</html>
